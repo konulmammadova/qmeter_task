@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aggregated Data</title>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aggregated Data Table</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Branch Name</th>
+                <th>Service Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for branch in data %}
+                <tr>
+                    <td rowspan="{{ branch.services|length }}">{{ branch.branch_name|default_if_none:"Branch name doesn't exist!" }}</td>
+                    {% if branch.services %}
+                        <td>{{ branch.services.0.service_name }}</td>
+                        <td>100*({{branch.services.0.ones}}*10 + {{branch.services.0.twos}}*5 + {{branch.services.0.threes}}*0 + {{branch.services.0.fours}}*-5 + {{branch.services.0.fives}}*-10)/{{branch.services.0.total}}*10 = {{ branch.services.0.score }}</td>
+                    </tr>
+                    {% for service in branch.services|slice:"1:" %} 
+                    <!-- It will start from 2nd element -->
+                        <tr>
+                            <td>{{ service.service_name }}</td>
+                            <td>100*({{service.ones}}*10 + {{service.twos}}*5 + {{service.threes}}*0 + {{service.fours}}* -5 + {{service.fives}}*-10)/{{service.total}}*10 = {{ service.score }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+

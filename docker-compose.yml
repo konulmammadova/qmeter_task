@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  mongo-db:
+    image: mongo:latest
+    container_name: mongodb
+    # command: apt-get update && apt-get install -y mongodb-clients # TO INSTALL MONGO TOOL
+    ports:
+      - "27017:27017"  # MongoDB port
+    volumes:
+      - mongo_data:/data/db
+
+  web:
+    build: .
+    container_name: django-web-app
+    restart: "always"
+    command: python manage.py runserver 0.0.0.0:8000
+    # command: ["uwsgi", "--ini", "/code/uwsgi.ini"]
+    # gunicorn myproject.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      # - LANG=C.UTF-8
+      # - LANG=en_US.UTF-8
+      # - LANGUAGE=en_US:en
+      # - LC_ALL=en_US.UTF-8
+      # - MONGO_HOST=mongodb
+      # - MONGO_PORT=27017
+      # - MONGO_DB_NAME=your_database_name
+      # - DJANGO_SETTINGS_MODULE=project_name.settings
+      # - DATABASE_URL=mongodb://db:27017/mydatabase
+    depends_on:
+      - "mongo-db"
+
+
+volumes:
+  mongo_data:
+

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Table</title>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Branch name</th>
+                <th>Service name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+           
+            {% for item in data %}
+            <tr>
+                <td>{{ item.branch_name }}</td>
+                <td>{{ item.service_name }}</td>
+                <td>100*({{item.ones}}*10 + {{item.twos}}*5 + {{item.threes}}*0 + {{item.fours}}* -5 + {{item.fives}}*-10)/{{item.sum_of_rate_options}}*10={{ item.score }}</td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Aggregated Data</title>
+</head>
+<body>
+    <h1>Aggregated Data Table</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Branch Name</th>
+                <th>Service Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for branch in branches %}
+                <tr>
+                    <td rowspan="{{ branch.services|length }}">{{ branch.branch_name }}</td>
+                    {% if branch.services %}
+                        <td>{{ branch.services.0.service_name }}</td>
+                        <td>{{ branch.services.0.score }}</td>
+                    </tr>
+                    {% for service in branch.services|slice:":-1" %}
+                        <tr>
+                            <td>{{ service.service_name }}</td>
+                            <td>{{ service.score }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html> -->
+
