@@ -124,21 +124,16 @@ class MongoDBClient:
             {
                 "$addFields": {
                     "score": {
-                        "$round": [
-                            {
-                                "$cond": {
-                                    "if": { "$gt": ["$total", 0] },
-                                    "then": {
-                                        "$multiply": [
-                                            { "$divide": [{ "$multiply": ["$weightedSum", 100] }, { "$multiply": ["$total", 10] }] },
-                                            1
-                                        ]
-                                    },
-                                    "else": 0
-                                }
+                        "$cond": {
+                            "if": { "$gt": ["$total", 0] },
+                            "then": {
+                                "$multiply": [
+                                    { "$divide": [{ "$multiply": ["$weightedSum", 100] }, { "$multiply": ["$total", 10] }] },
+                                    1
+                                ]
                             },
-                            0
-                        ]
+                            "else": 0
+                        }
                     }  
                 }
             },
