@@ -1,12 +1,9 @@
 from pymongo import MongoClient
 from django.conf import settings
 
-# MongoDB connection settings
-MONGO_URI = 'mongodb://mongodb:27017/qmeter_feedback_db' #'mongodb://container_name:27017/database_name'
 
 
 class MongoDBClient:
-    MONGO_URI = 'mongodb://mongo-db:27017/qmeter_feedback_db'
     HOST = settings.MONGO_HOST
     PORT = settings.MONGO_PORT
     DB_NAME =settings.MONGO_DB_NAME
@@ -55,39 +52,34 @@ class MongoDBClient:
                     "fours": "$fours", 
                     "fives": "$fives",
                     "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                    "score": {
-                        "$round": [ 
-                            {
-                                "$cond": { 
-                                    "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
-                                    "then": {
-                                        "$divide": [
+                    "score": { 
+                        "$cond": { 
+                            "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
+                            "then": {
+                                "$divide": [
+                                    {
+                                        "$multiply": [
+                                            100,
                                             {
-                                                "$multiply": [
-                                                    100,
-                                                    {
-                                                        "$sum": [
-                                                            { "$multiply": ["$ones", 10] },
-                                                            { "$multiply": ["$twos", 5] },
-                                                            { "$multiply": ["$fours", -5] },
-                                                            { "$multiply": ["$fives", -10] }
-                                                        ]
-                                                    }
-                                                ]
-                                            },
-                                            {
-                                                "$multiply": [
-                                                    { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                                                    10
+                                                "$sum": [
+                                                    { "$multiply": ["$ones", 10] },
+                                                    { "$multiply": ["$twos", 5] },
+                                                    { "$multiply": ["$fours", -5] },
+                                                    { "$multiply": ["$fives", -10] }
                                                 ]
                                             }
                                         ]
                                     },
-                                    "else": 0
-                                }
+                                    {
+                                        "$multiply": [
+                                            { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                                            10
+                                        ]
+                                    }
+                                ]
                             },
-                            0
-                        ]
+                            "else": 0
+                        }    
                     }
                 }
             }
@@ -123,7 +115,7 @@ class MongoDBClient:
                         "$add": [
                             { "$multiply": ["$ones", 10] },
                             { "$multiply": ["$twos", 5] },
-                            { "$multiply": ["$fours", -5] },
+                            { "$multiply": ["$fours", -5] },    
                             { "$multiply": ["$fives", -10] }
                         ]
                     }

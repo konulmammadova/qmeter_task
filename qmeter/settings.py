@@ -28,7 +28,7 @@ MONGO_HOST = os.getenv("MONGO_HOST")
 MONGO_PORT=os.getenv("MONGO_PORT")
 MONGO_DB_NAME=os.getenv("MONGO_DB_NAME")
 
-ALLOWED_HOSTS = ["localhost",]
+ALLOWED_HOSTS = ["localhost",] # 127.0.0.1 can be added 
 
 # Application definition
 

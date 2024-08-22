@@ -1,22 +1,24 @@
 version: "3"
 
 services:
-  mongodb:
+  mongo-db:
     image: mongo:7.0.12
     container_name: mongo-db
     ports:
       - "27017:27017"
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet 1
+      test: echo 'db.runCommand("ping").ok' | mongo mongo-db:27017/test --quiet 1
       interval: 10s
       timeout: 10s
       retries: 5
     volumes:
       - mongo_data:/data/db
+    networks:
+      - default
 
   web:
     build: .
-    container_name: qm-feedback
+    container_name: qm-feedback-app
     restart: "always"
     command: gunicorn qmeter.wsgi:application --bind 0.0.0.0:8000 --workers=3
     ports:
@@ -25,9 +27,16 @@ services:
       - .:/app
     env_file: .env
     depends_on:
-      - "mongodb"
+      - mongo-db
+    links:
+      - mongo-db
+    networks:
+      - default
 
 
 volumes:
   mongo_data:
 
+networks:
+  default:
+    driver: bridge

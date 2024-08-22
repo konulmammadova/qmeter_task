@@ -65,6 +65,10 @@ class ScoreTable1View(TemplateView):
         
         context= { "data": data }
 
+        print(")))))))))))))))))))")
+        print(data[0])
+        print(")))))))))))))))))))")
+
         return context
 
 class ScoreTable2View(TemplateView):

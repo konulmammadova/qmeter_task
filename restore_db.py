@@ -1,3 +1,4 @@
+import os
 import requests
 import pymongo
 from pymongo import MongoClient
@@ -5,8 +6,12 @@ from django.conf import settings
 
 # settings.configure()
 
+MONGO_HOST = os.getenv("MONGO_HOST")
+MONGO_PORT = os.getenv("MONGO_PORT")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 
-client = MongoClient(f"mongodb://localhost:27017/qmeter_feedback_db'")
+
+client = MongoClient(f"mongodb://{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}'")
 db = client["qmeter_feedback_db"]
 collection = db['feedback_collection']
 

@@ -6,8 +6,10 @@ ENV PYTHONUNBUFFERED=1
 
 ENV APP_ROOT /app
 
-COPY . ${APP_ROOT}
-
 WORKDIR ${APP_ROOT}
 
+COPY requirements.txt requirements.txt
+
 RUN pip install pip --upgrade && pip install --no-cache-di -r requirements.txt
+
+COPY . ${APP_ROOT}
