@@ -1,20 +1,16 @@
-### Code Cleanup and Execution
+Oxumadan Keçməyin
 
-- Ensure type checking and correct import order.
-- Clean up the code for readability.
-- Run the `py` file after checking for any errors.
+Qeyd: 
+Proyekti dockerdə qaldırdıqdan dərhal sonra test databazası üçün aşağıdakı kommandan istifadə edin:
+	
+	docker exec -it qm-feedback-app python /app/restore_db.py
 
-### Example HTML Template
+Test etmek ucun browserde asagidaki url-leri aca bilersiz:
+http://localhost:8000/score-table/1/
+http://localhost:8000/score-table/2/
 
-```html
-{% for branch in data %}
-    <tr>
-        <td rowspan="{{ branch.services|length }}">{{ branch.branch_name|default_if_none:"Branch name doesn't exist!" }}</td>
-        {% if branch.services %}
-            <tr>
-                <td>{{ branch.services.0.service_name }}</td>
-                <td>100*({{ branch.services.0.ones }}*10 + {{ branch.services.0.twos }}*5 + {{ branch.services.0.threes }}*0 + {{ branch.services.0.fours }}*-5 + {{ branch.services.0.fives }}*10)</td>
-            </tr>
-        {% endif %}
-    </tr>
-{% endfor %}
+Proyektde neler edilib:
+Dockerfile ve docker-compose fayllari struktura uygun yazilib.
+Tapsiriqda istenilen table-in gosterilmesi 2 ferqli yolla yerine yetirilib. 
+	
+
