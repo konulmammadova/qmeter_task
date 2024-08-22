@@ -2,10 +2,15 @@ version: "3"
 
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0.12
     container_name: mongo-db
     ports:
-      - "27017:27017"  # MongoDB port
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
     volumes:
       - mongo_data:/data/db
 
@@ -13,19 +18,12 @@ services:
     build: .
     container_name: qm-feedback
     restart: "always"
-    command: python manage.py runserver 0.0.0.0:8000
-    # command: ["uwsgi", "--ini", "/code/uwsgi.ini"]
-    # command: gunicorn qmeter.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn qmeter.wsgi:application --bind 0.0.0.0:8000 --workers=3
     ports:
       - "8000:8000"
     volumes:
       - .:/app
     env_file: .env
-    # environment:
-      # - LANG=C.UTF-8
-      # - LANG=en_US.UTF-8
-      # - LANGUAGE=en_US:en
-      # - LC_ALL=en_US.UTF-8
     depends_on:
       - "mongodb"
 
