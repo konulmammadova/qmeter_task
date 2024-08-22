@@ -23,10 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-xd)sirp%po7u-y)l6k!3okq7@+q14aj7j4lt5f-q!&=4(25g=0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.getenv("DEBUG"))
+MONGO_HOST = os.getenv("MONGO_HOST")
+MONGO_PORT=os.getenv("MONGO_PORT")
+MONGO_DB_NAME=os.getenv("MONGO_DB_NAME")
 
-ALLOWED_HOSTS = ["localhost"]
-
+ALLOWED_HOSTS = ["localhost",]
 
 # Application definition
 
@@ -52,12 +54,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'qmeter.urls'
 
-print("******************************")
-# print([Path(BASE_DIR) / 'templates'])
-# print(Path(BASE_DIR))
-# print(type(BASE_DIR / 'templates'))
-# print([os.path.join(BASE_DIR, 'templates')])
-print("******************************")
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -112,12 +108,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dubai'
 
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

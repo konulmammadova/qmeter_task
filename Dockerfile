@@ -1,6 +1,5 @@
-FROM python:3 
-#FROM python:3.10.14-slim #without unnecessary things
-#FROM python:3.11-slim
+FROM python:3.10.14-slim
+# python version without unnecessary load
 
 # Define environment variables
 # Set environment variables to ensure the Python output 
@@ -29,4 +28,4 @@ RUN pip install pip --upgrade && pip install --no-cache-di -r requirements.txt
 # ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # # Run the Django app using gunicorn
-# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project_name.wsgi:application"]
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "qmeter.wsgi:application"]
