@@ -31,19 +31,22 @@
         </thead>
         <tbody>
             {% for branch in data %}
-            <tr>
-                <td rowspan="{{ branch.services|length }}">{{ branch.branch_name|default_if_none:"Branch name doesn't exist!" }}</td>   
                 {% if branch.services %}
-                <td>{{ branch.services.0.service_name }}</td>
-                <td>100*({{branch.services.0.ones}}*10 + {{branch.services.0.twos}}*5 + {{branch.services.0.threes}}*0 + {{branch.services.0.fours}}*-5 + {{branch.services.0.fives}}*-10)/{{branch.services.0.total}}*10 = {{ branch.services.0.score }}</td>
-            </tr>
-                {% for service in branch.services|slice:"1:" %} 
-                <!-- It will start from 2nd element -->
-                <td>{{ service.service_name }}</td>
-                <td>100*({{service.ones}}*10 + {{service.twos}}*5 + {{service.threes}}*0 + {{service.fours}}* -5 + {{service.fives}}*-10)/{{service.total}}*10 = {{ service.score }}</td>
-            </tr>
-            {% endfor %}
-            {% endif %}
+                    <!-- first tr -->
+                    <tr>
+                        <td rowspan="{{ branch.services|length }}">{{ branch.branch_name|default_if_none:"Branch name doesn't exist!" }}</td>   
+                        <td>{{ branch.services.0.service_name }}</td>
+                        <td>100*({{branch.services.0.ones}}*10 + {{branch.services.0.twos}}*5 + {{branch.services.0.threes}}*0 + {{branch.services.0.fours}}*-5 + {{branch.services.0.fives}}*-10)/{{branch.services.0.total}}*10 = {{ branch.services.0.score }}</td>
+                    </tr>
+                  
+                     <!-- It will start from 2nd element -->
+                    {% for service in branch.services|slice:"1:" %} 
+                    <tr> 
+                        <td>{{ service.service_name }}</td>
+                        <td>100*({{service.ones}}*10 + {{service.twos}}*5 + {{service.threes}}*0 + {{service.fours}}* -5 + {{service.fives}}*-10)/{{service.total}}*10 = {{ service.score }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
         </tbody>
     </table>
