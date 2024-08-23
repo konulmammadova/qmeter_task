@@ -1,14 +1,18 @@
 from collections import defaultdict
+from typing import Dict, List
+
 from django.shortcuts import render
 from django.views.generic import TemplateView
+
 from qmeter.client import MongoDBClient
 
 class ScoreTable1View(TemplateView):
     template_name = "feedback/score_table.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict[str, List[Dict[str, any]]]:
         """
-        - Pipeline data comes in the following format:
+            - Methods type hint above, represents data format that will be used in table of html page
+            - For example pipeline data format see READ.ME file
             [
                 {
                     "branch_name": "user branch",
@@ -36,13 +40,13 @@ class ScoreTable1View(TemplateView):
         """
 
         client = MongoDBClient()
-        result = client.get_score_data()
+        result: List[Dict] = client.get_score_data()
 
         # Convert result to the desired context data format
-        branch_data = defaultdict(list)
+        branch_data: Dict[str, List]= defaultdict(list) # provides data structure like { any_key: [], any_key: [], ... }
         
         for document in result:
-            branch_name = document.get("branch_name") # using get, because some document branch names doesn"t exist
+            branch_name = document.get("branch_name") # using get, because some document branch names doesn't exist
             service_data = {
                 "service_name": document["service_name"],
                 "score": document["score"],
@@ -65,18 +69,15 @@ class ScoreTable1View(TemplateView):
         
         context= { "data": data }
 
-        print(")))))))))))))))))))")
-        print(data[0])
-        print(")))))))))))))))))))")
-
         return context
 
 class ScoreTable2View(TemplateView):
     template_name = "feedback/score_table.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict[str, List[Dict[str, any]]]:
         """
-        - Pipeline data comes in the following format:
+            - Methods type hint above, represents data format that will be used in table of html page
+            - For example pipeline data format see READ.ME file
             {
             "branch_name": "Branch 1",
             "services":[
@@ -114,7 +115,7 @@ class ScoreTable2View(TemplateView):
             }
         """
         client = MongoDBClient()
-        result = client.get_score_data_by_branch()
+        result: List[Dict] = client.get_score_data_by_branch()
         context= { "data": result }
 
         return context

@@ -1,4 +1,7 @@
 from pymongo import MongoClient
+from pymongo.collection import Collection
+from typing import Dict, List
+
 from django.conf import settings
 
 
@@ -8,19 +11,21 @@ class MongoDBClient:
     PORT = settings.MONGO_PORT
     DB_NAME =settings.MONGO_DB_NAME
 
-    FEEDBACK_COLLECTION = "feedback_collection"
+    FEEDBACK_COLLECTION: str = "feedback_collection"
+    # ...  can be added other collections
 
     def __init__(self, **kwargs):
         client = MongoClient(f"mongodb://{self.HOST}:{self.PORT}/{self.DB_NAME}")
         self.db = client[self.DB_NAME]
-        self.feedback_collection = self.db[self.FEEDBACK_COLLECTION]
-        # ...  can be written other collections
+        self.feedback_collection: Collection = self.db[self.FEEDBACK_COLLECTION]
+        
 
-    def _get_data(self, collection, pipeline):
+    def _get_data(self, collection: Collection, pipeline: List[Dict]) -> List[Dict]:
         return list(collection.aggregate(pipeline))
 
-    def get_score_data(self):
-        pipeline = [
+    def get_score_data(self) -> List[Dict]:
+        
+        pipeline: List[Dict] = [
             {
                 "$unwind": "$feedback_rate"
             },
@@ -87,11 +92,11 @@ class MongoDBClient:
 
         return self._get_data(self.feedback_collection, pipeline)
 
-    def get_score_data_by_branch(self):
+    def get_score_data_by_branch(self) -> List[Dict]:
         """
             With this method there is no need to modify data for sending to the table
         """
-        pipeline=[
+        pipeline: List[Dict] =[
             {
                 "$unwind": "$feedback_rate"
             },
