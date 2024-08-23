@@ -9,7 +9,7 @@ from django.conf import settings
 class MongoDBClient:
     HOST = settings.MONGO_HOST
     PORT = settings.MONGO_PORT
-    DB_NAME =settings.MONGO_DB_NAME
+    DB_NAME = settings.MONGO_DB_NAME
 
     FEEDBACK_COLLECTION: str = "feedback_collection"
     # ...  can be added other collections
@@ -25,6 +25,7 @@ class MongoDBClient:
 
     def get_score_data(self) -> List[Dict]:
         
+        # Pipeline-1
         pipeline: List[Dict] = [
             {
                 "$unwind": "$feedback_rate"
@@ -66,7 +67,7 @@ class MongoDBClient:
                                         "$multiply": [
                                             100,
                                             {
-                                                "$sum": [
+                                                "$add": [
                                                     { "$multiply": ["$ones", 10] },
                                                     { "$multiply": ["$twos", 5] },
                                                     { "$multiply": ["$fours", -5] },
@@ -77,7 +78,7 @@ class MongoDBClient:
                                     },
                                     {
                                         "$multiply": [
-                                            { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                                            { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
                                             10
                                         ]
                                     }
@@ -93,10 +94,10 @@ class MongoDBClient:
         return self._get_data(self.feedback_collection, pipeline)
 
     def get_score_data_by_branch(self) -> List[Dict]:
-        """
-            With this method there is no need to modify data for sending to the table
-        """
-        pipeline: List[Dict] =[
+        # With this method there is no need to modify data for sending to the table
+
+        # Pipeline-2
+        pipeline: List[Dict] = [
             {
                 "$unwind": "$feedback_rate"
             },
@@ -115,8 +116,8 @@ class MongoDBClient:
             },
             {
                 "$addFields": {
-                    "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                    "weightedSum": {
+                    "total_count": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                    "weighted_sum": {
                         "$add": [
                             { "$multiply": ["$ones", 10] },
                             { "$multiply": ["$twos", 5] },
@@ -130,10 +131,10 @@ class MongoDBClient:
                 "$addFields": {
                     "score": {
                         "$cond": {
-                            "if": { "$gt": ["$total", 0] },
+                            "if": { "$gt": ["$total_count", 0] },
                             "then": {
                                 "$multiply": [
-                                    { "$divide": [{ "$multiply": ["$weightedSum", 100] }, { "$multiply": ["$total", 10] }] },
+                                    { "$divide": [{ "$multiply": ["$weighted_sum", 100] }, { "$multiply": ["$total_count", 10] }] },
                                     1
                                 ]
                             },
@@ -156,7 +157,7 @@ class MongoDBClient:
                             "fours": "$fours",
                             "fives": "$fives",
 
-                            "total": "$total",
+                            "total": "$total_count",
 
                         }
                     }
@@ -168,7 +169,8 @@ class MongoDBClient:
                     "branch_name": "$_id",
                     "services": 1
                 }
-            }
+            },
+            {"$limit": 3}
         ]
 
         return self._get_data(self.feedback_collection, pipeline)

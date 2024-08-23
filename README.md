@@ -7,7 +7,7 @@
 - [Birbaşa nəticəni görmək üçün](#birbaşa-nəticəni-görmək-üçün)
 - [Nəzər yetirilməli olan fayllar](#nəzər-yetirilməli-olan-fayllar)
 - [Proyektdə nələr edilib](#proyektdə-nələr-edilib)
-- [Kod Strukturu Haqqında](#kod-strukturu-haqqında-***) ***
+- [Kod Strukturunun İzahı](#kod-strukturunun-izahı-***) ***
 
 
 ## Proyektin quraşdırılması
@@ -46,7 +46,7 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 
      2. Qruplaşdırma və hesablamaların edilməsi, həmçinin table-da göstərmək üçün uyğun formata salınması MongoDB query-si ilə edilib və birbaşa istifadə olunub.(qmeter/client.py faylındakı  [`get_score_data_by_branch`](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/qmeter/client.py#L90) və [`ScoreTable2View`](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/feedback/views.py#L74)-da [`get_context_data`](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/feedback/views.py#L117) methodunda)
 
-## Kod Strukturu Haqqında ***
+## Kod Strukturunun İzahı ***
 
 - [aggregate pipeline](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/qmeter/client.py#L91)-ları uzun sətirlərlə olsa da bütöv bir python kodu halında yazılıb ki, eyni python kodlarını MongoDB query-ləri olaraq tam şəkildə görmək və test etmək mümkün olsun.
 
@@ -54,46 +54,55 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 
 - Kodda bəzi yerlərdə faydalı olacağı düşünülərək, xüsusilə method *return type*-larını göstərmək üçün **type hinting** istifadə olunub. 
 
-## MongoDB Query-ləri Haqqında ```python ```
+## MongoDB Query-lərinin İzahı 
 1. Hər iki pipeline aggregation-da ( [pipeline1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28), [pipeline2](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L99) ), eyni branch-daki hər bir servisi ayrı-ayrı handle edə bilək deyə `{ $unwind: "$feedback_rate" }` *stage*-i əlavə olunub.   
 
    Hər document-də service-lər feedback_rate içində aşağıdakı formada saxlanılır.
    ```python
+   {
+      "branch": { ..., "name": "Branch 1" },
       "feedback_rate": [
-      {
-         "service": {...},
-         "rate_option": 4,
-         ...
-      },
-      {
-         "service": {...},
-         "rate_option": 4,
-         ...
-      }
-   ]
+         {
+            "service": {..., "name": "A" },
+            "rate_option": 4,
+            ...,
+         },
+         {
+            "service": {..., "name": "B" },
+            "rate_option": 5,
+            ...,
+         }
+      ]
+   }
    ```
    `$unwind` istifadə edərək yuxarıdakı 1 document əvəzinə aşağıdakı kimi 2 ayrı document əldə etmiş oluruq:
 
    ```python
+   {
+      "branch": { ..., "name": "Branch 1" },
       "feedback_rate": [
          ...
-         "service": {...},
+          "service": {..., "name": "A" },
          "rate_option": 4,
          ...
       ]
+   }
    ```
 
    ```python
+   {
+      "branch": { ..., "name": "Branch 1" },,
       "feedback_rate": [
          ...
-         "service": {...},
+          "service": {..., "name": "B" },
          "rate_option": 5,
          ...
       ]
+   }
    ```
    və datanı bu formada növbəti $group stage-nə ötürürük.
 
-2. $group stage-də datanı branch name və service name-ə əsasən qruplayıb növbəti stage-ə hesablamaları apara bilməyi üçün tapşırıqda verilən düstura əsasən hər bir rate_option sayını hesablayırıq:
+2. $group stage-də datanı branch name və service name-ə əsasən qruplaşdırıram, növbəti stage-də tapşırıqda verilən düsturla bağlı hesablamaları aparmaq üçün lazım olan hər bir rate_option sayını hesablayıram:
 ```python
 "$group": {
             "_id": {
@@ -108,7 +117,7 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 }
 ```
 
-3. Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28)-dən davam edək. [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28) sadəcə düsturla bağlı qruplaşdırma ve hesablamanı edirdi. Burada növbəti stage output documenti formalaşdırdığımız $project stage-dir.
+3. Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28) üzərindən davam edək. [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28) yalnız düsturun tətbiqinə fokuslandığım query-lərdir. Burada növbəti, yəni 3-cü stage, output documenti formalaşdırdığım $project stage-dir.
 ```python
 "$project": {
    "_id": 0,
@@ -151,4 +160,174 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
    }
 }
 ```  
+Bu stage-də;
+   - _id -ni output document-də göstərməmək üçün `"_id": 0` yazmışam.
+   - Datanı table-da göstərərkən 1-lərin, ..., 5-lərin sayı lazım olacağı üçün(pythonla       sonradan hesablaya bilməyəcəyim üçün) onları da əlavə etmişəm.
+   - group stage-dən aldığımız field-lərin dəyərlərini istifadə etmişəm.
+   - score fieldinin dəyərini almaq üçün də düsturu tətbiq etmişəm. 
+   - 0-a bölünmə xətasının qarşısını almaq üçün `if else` istifadə etmişəm.
+ `"if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] }`
+   - **`$sum` əvəzinə `$add` istifadə etmişəm. Document içində field dəyərlərini toplayarkən bu dəyərlərin sayı bəllidirsə(çox deyilsə), belə hallarda `$add` `$sum`-dan daha optimal/sürətli işləyir.**
+   - **Oxunaqlılıq üçün `score` dəyərini `$addField` stage-ində hesablaya bilərdim. Bu həm də onu, növbəti diğər stage-lər olarsa, birdən çox yerdə istifadə etmək şansı verərdi. Lakin, `score`-u son dəyər olaraq hesabladığım üçün birbaşa `$project` stage-ində yazdım.**
+
+ [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/4f7f263ef2b6f35a52e1f784ab01184583c72993/qmeter/client.py#L28)-in tətbiqi burada bitir və biz datanı table üçün uyğun formata gətirmək üçün view içərisində [python kodlarını](https://github.com/konulmammadova/qmeter_task/blob/4f7f263ef2b6f35a52e1f784ab01184583c72993/feedback/views.py#L45) tətbiq edirik.
+
+
+ 4. [Pipeline-2]()-də isə data üzərində sadəcə düsturu tətbiq etməyə fokuslanmırıq, eyni zamanda table-da göstərə bilmək üçün uyğun formata çeviririk. Bu pipeline-da $unwind v $group stage-lərindən sonra gələn stage-lər bunlardır:
+      - 2 ədəd `$addField` stage-i
+      - növbəti `$group` stage-i
+      - `$project` stage-i
+
+      `$addField` stage-ləri belədir:
+      ```python
+      {
+         "$addFields": {
+            "total_count": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+            "weighted_sum": {
+               "$add": [
+                     { "$multiply": ["$ones", 10] },
+                     { "$multiply": ["$twos", 5] },
+                     { "$multiply": ["$fours", -5] },    
+                     { "$multiply": ["$fives", -10] }
+               ]
+            }
+         }
+      },
+      {
+         "$addFields": {
+            "score": {
+               "$cond": {
+                  "if": { "$gt": ["$total_count", 0] },
+                  "then": {
+                     "$multiply": [
+                        { "$divide": [{ "$multiply": ["$weighted_sum", 100] }, { "$multiply": ["$total_count", 10] }] },
+                        1
+                     ]
+                  },
+                  "else": 0
+               }
+            }  
+         }
+      },
+      ```
+
+      Burada oxunaqlılıq, *modularity* v' daha rahat debug etmək adına  2 ədəd `"$addFields"` istifadə etmişəm. 1-ci `"$addFields"`-də yaratdığım `total_count` və `weighted_sum` fieldlərini 2-ci `"$addFields"`-də `score` hesablamaq üçün istifadə etmişəm.
+
+      5. Pipeline-1-dən fərli olaraq, Pipeline-2-də datanı sonradan Pythonla uyğun formata salmaq əvəzinə həmin işi Pipeline-2-nin özündə aşağıda gördüyünüz `$group` stage-ində etmişəm
+      ```python
+      {
+         "$group": {
+            "_id": "$_id.branch_name",
+            "services": {
+               "$push": {
+                     "service_name": "$_id.service_name",
+                     "score": "$score",
+                     
+                     "ones": "$ones",
+                     "twos": "$twos",
+                     "threes": "$threes",
+                     "fours": "$fours",
+                     "fives": "$fives",
+
+                     "total": "$total_count",
+
+               }
+            }
+         }
+      }
+      ```
+
+      Buradaki $group özündən əvvəlki stage-dən aşağıdakı strukturda input document-lər alır;
+      ```python
+      {
+         "_id": {
+            "branch_name": "Branch 1",
+            "service_name": "Customer service"
+         },
+         "ones": 1,
+         "twos": 0,
+         "threes": 0,
+         "fours": 0,
+         "fives": 0,
+         "total_count": 1,
+         "weighted_sum": 10,
+         "score": 100
+      },
+      {
+         "_id": {
+            "branch_name": "Branch 1",
+            "service_name": "Marketing service"
+         },
+         "ones": 1,
+         "twos": 0,
+         "threes": 0,
+         "fours": 0,
+         "fives": 0,
+         "total_count": 1,
+         "weighted_sum": 10,
+         "score": 100
+      },
+      ```   
+      və bu 2 documentləri branch_name-ə görə qruplayır, $push ilə service_name-ləri array halında toplayır. Aşağıdakı formatda document-ləri qaytarır:
+      ```python
+      {
+         "_id": "Branch 1",
+         "services": [
+            {
+               "service_name": "Marketing service",
+               "score": 25,
+               "ones": 1,
+               "twos": 0,
+               "threes": 0,
+               "fours": 1,
+               "fives": 0,
+               "total": 2
+            },
+            {
+               "service_name": "Customer Service",
+               "score": 0,
+               "ones": 2,
+               "twos": 1,
+               "threes": 0,
+               "fours": 3,
+               "fives": 1,
+               "total": 7
+            },
+         ]
+      }
+      ```
+
+      Son olaraq,
+      Pipeline-2-də sonuncu stage olan $project-də **table-da göstərməyə uyğun formatda olan output document-ləri** əldə edirəm:
+      ```python
+      {
+         "branch_name": "ios test",
+         "services": [
+            {
+               "service_name": "Speed of service",
+               "score": 25,
+               "ones": 1,
+               "twos": 0,
+               "threes": 0,
+               "fours": 1,
+               "fives": 0,
+               "total": 2
+            },
+            {
+               "service_name": "Marketing Service",
+               "score": 0,
+               "ones": 2,
+               "twos": 1,
+               "threes": 0,
+               "fours": 3,
+               "fives": 1,
+               "total": 7
+            },
+         ],
+      }
+      ```
+
+
+
+
     

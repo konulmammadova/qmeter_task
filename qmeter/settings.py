@@ -23,12 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-xd)sirp%po7u-y)l6k!3okq7@+q14aj7j4lt5f-q!&=4(25g=0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv("DEBUG"))
+
+DEBUG = False if os.getenv("DEBUG") == "False" else True
 MONGO_HOST = os.getenv("MONGO_HOST")
 MONGO_PORT=os.getenv("MONGO_PORT")
 MONGO_DB_NAME=os.getenv("MONGO_DB_NAME")
 
-ALLOWED_HOSTS = ["localhost",] # 127.0.0.1 can be added 
+ALLOWED_HOSTS = ["localhost",] # 127.0.0.1 can be added    
+
 
 # Application definition
 

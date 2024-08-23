@@ -2,4 +2,3 @@ venv
 todos
 .DS_store
 __pycache__
-tests
