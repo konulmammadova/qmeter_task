@@ -173,7 +173,6 @@ class MongoDBClient:
                     "services": 1
                 }
             },
-            {"$limit": 3}
         ]
 
         return self._get_data(self.feedback_collection, pipeline)
