@@ -12,7 +12,7 @@
 
 ## Proyektin quraşdırılması
 
-Dockeri qaldırdıqdan dərhal sonra test databazası üçün aşağıdakı kommandı icra edin:
+Proyekti Dockerdə qaldırmaq üçün build commandını və ondan dərhal sonra test databazası üçün növbəti kommandı icra edin:
 
 ```bash
 docker-compose up --build -d
@@ -111,69 +111,44 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 3. Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28)-dən davam edək. [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/52176945760f8bd89171551e29b71242e09f7e70/qmeter/client.py#L28) sadəcə düsturla bağlı qruplaşdırma ve hesablamanı edirdi. Burada növbəti stage output documenti formalaşdırdığımız $project stage-dir.
 ```python
 "$project": {
-      "_id": 0,
-      "branch_name": "$_id.branch_name",
-      "service_name": "$_id.service_name",
-      "ones": "$ones", 
-      "twos": "$twos", 
-      "threes": "$threes", 
-      "fours": "$fours", 
-      "fives": "$fives",
-      "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-      "score": { 
-         "$cond": { 
-               "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
-               "then": {
-                  "$divide": [
-                     {
-                           "$multiply": [
-                              100,
-                              {
-                                 "$sum": [
-                                       { "$multiply": ["$ones", 10] },
-                                       { "$multiply": ["$twos", 5] },
-                                       { "$multiply": ["$fours", -5] },
-                                       { "$multiply": ["$fives", -10] }
-                                 ]
-                              }
-                           ]
-                     },
-                     {
-                           "$multiply": [
-                              { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                              10
-                           ]
-                     }
-                  ]
-               },
-               "else": 0
-         }    
-      }
+   "_id": 0,
+   "branch_name": "$_id.branch_name",
+   "service_name": "$_id.service_name",
+   "ones": "$ones", 
+   "twos": "$twos", 
+   "threes": "$threes", 
+   "fours": "$fours", 
+   "fives": "$fives",
+   "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+   "score": { 
+      "$cond": { 
+            "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
+            "then": {
+               "$divide": [
+                  {
+                        "$multiply": [
+                           100,
+                           {
+                              "$sum": [
+                                    { "$multiply": ["$ones", 10] },
+                                    { "$multiply": ["$twos", 5] },
+                                    { "$multiply": ["$fours", -5] },
+                                    { "$multiply": ["$fives", -10] }
+                              ]
+                           }
+                        ]
+                  },
+                  {
+                        "$multiply": [
+                           { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                           10
+                        ]
+                  }
+               ]
+            },
+            "else": 0
+      }    
    }
 }
-```python
-
-feedback_rate array-indəki services array-i əvəzinə hər feedback_rate içində bir service objekti olan document əldə etmiş oluruq
-
---------
-// Unwind the feedback_rate array to handle each service individually
-    { $unwind: "$feedback_rate" },
-    
-------
-// Group by branch.name and service.name, and accumulate the counts for each rate_option
-```python
-    {
-        $group: {
-            _id: {
-                branch: "$branch.name",
-                service: "$feedback_rate.service.name"
-            },
-            count1: { $sum: { $cond: [{ $eq: ["$feedback_rate.rate_option", 1] }, 1, 0] } },
-            count2: { $sum: { $cond: [{ $eq: ["$feedback_rate.rate_option", 2] }, 1, 0] } },
-            count3: { $sum: { $cond: [{ $eq: ["$feedback_rate.rate_option", 3] }, 1, 0] } },
-            count4: { $sum: { $cond: [{ $eq: ["$feedback_rate.rate_option", 4] }, 1, 0] } },
-            count5: { $sum: { $cond: [{ $eq: ["$feedback_rate.rate_option", 5] }, 1, 0] } }
-        }
-    }
 ```  
     
