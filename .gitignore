@@ -1,4 +1,4 @@
 venv
 todos
 .DS_store
-__pycache__
+# __pycache__
