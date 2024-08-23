@@ -7,8 +7,8 @@
 - [Birbaşa nəticəni görmək üçün](#birbaşa-nəticəni-görmək-üçün)
 - [Nəzər yetirilməli olan fayllar](#nəzər-yetirilməli-olan-fayllar)
 - [Proyektdə nələr edilib](#proyektdə-nələr-edilib)
-- [Kod Strukturunun İzahı](#kod-strukturunun-izahı-***) ***
-
+- [Kod Strukturunun İzahı](#kod-strukturunun-izahı) ***
+- [MongoDB Query-lərinin İzahı](#mongodb-query-lərinin-izahı)
 
 ## Proyektin quraşdırılması
 
@@ -37,7 +37,7 @@ url-lərinə daxil ola bilərsiz.
 
 ## Proyektdə nələr edilib:
 - MongoDB və Django proyekti üçün **Dockerfile** və **docker-compose** faylları uyğun formada yazılaraq proyekt *dockerize* edilib.
-- Tapışırıqda istənilən table-ın göstərilməsi üçün 2 alternativ yoldan istifadə edilib:
+- Tapışırıqda istənilən table-ın göstərilməsi üçün 2 alternativ yoldan istifadə edilib **(Lakin ən optimal yol 2-ci yoldur)**:
 **1-ci yol:** - Qruplaşdırma və hesablamalar; yəni datanın *branch name* və *service name*-lərə görə qruplaşdırılıb;   
        `**100 * ( birlərin sayı * 10 + ikilərin sayı * 5 + üçlərin sayı * 0 + dördlərin sayı * -5 +
 beşlərin sayı * -10 ) / (bir + iki + üç+ dörd + beşlərin sayı ) * 10**`  
@@ -47,7 +47,7 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 
    **2-ci yol:** Qruplaşdırma və hesablamaların edilməsi, həmçinin table-da göstərmək üçün uyğun formata salınması MongoDB query-si ilə edilib və birbaşa istifadə olunub.(qmeter/client.py faylındakı  [`get_score_data_by_branch`](https://github.com/konulmammadova/qmeter_task/blob/4575138823dcee73e88fcdf3e68a762715efa148/qmeter/client.py#L96) və [`ScoreTable2View`](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/feedback/views.py#L74)-da [`get_context_data`](https://github.com/konulmammadova/qmeter_task/blob/ada6f363ea41386ea387c1891625f2bd61d8fda9/feedback/views.py#L117) methodunda)
 
-## Kod Strukturunun İzahı ***
+## Kod Strukturunun İzahı
 
 - Aggregate pipeline-ları uzun sətirlərlə olsa da bütöv bir python kodu halında yazılıb ki, həmin python kodlarını MongoDB query-ləri olaraq tam şəkildə görmək və test etmək mümkün olsun.
 
@@ -119,8 +119,18 @@ düsturu ilə hesablanması, tapşırıqda istənildiyi kimi MongoDB query-si il
 }
 ```
 
-##### Pipeline-1 -də sonuncu stage
-Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/main/qmeter/client.py#L28) üzərindən davam edək. [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/main/qmeter/client.py#L28) yalnız düsturun tətbiqinə fokuslandığım query-lərdir. Burada növbəti, yəni 3-cü *stage*, output documenti formalaşdırdığım `$project` stage-dir.
+##### Pipeline-1 -də addFields və project stage-ləri
+Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/main/qmeter/client.py#L28) üzərindən davam edək. [Pipeline-1](https://github.com/konulmammadova/qmeter_task/blob/main/qmeter/client.py#L28) yalnız düsturun tətbiqinə fokuslandığım query-lərdir. Burada növbəti, yəni 3-cü *stage*, `$addFields` və sonununcu stage output documenti formalaşdırdığım `$project` stage-dir.
+```python
+{
+      "$addFields":{
+         "total_count": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+      }
+}
+```
+`$addFields` stage-dən aldığımız dəyəri *total_count*-u hesablamanı növbəti stage-də 2 fərqli yerdə təkrar etməyək deyə istifadə edəcəyik.
+
+Sonuncu stage:
 ```python
 "$project": {
    "_id": 0,
@@ -131,7 +141,7 @@ Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeli
    "threes": "$threes", 
    "fours": "$fours", 
    "fives": "$fives",
-   "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+   "total": "$total_count",
    "score": { 
       "$cond": { 
             "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
@@ -151,10 +161,7 @@ Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeli
                         ]
                   },
                   {
-                        "$multiply": [
-                           { "$sum": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                           10
-                        ]
+                        "$multiply": [ "$total_count", 10]
                   }
                ]
             },
@@ -165,7 +172,7 @@ Bura qədərki query-lər hər iki pipeline üçün eyni idi. İndi isə [Pipeli
 ```  
 Bu stage-də;
    - `_id` -ni output document-də göstərməmək üçün `"_id": 0` yazmışam.
-   - Datanı table-da göstərərkən 1-lərin, ..., 5-lərin sayı lazım olacağı üçün (pythonla       sonradan hesablaya bilməyəcəyim üçün) onları da əlavə etmişəm.
+   - Datanı table-da göstərərkən 1-lərin, ..., 5-lərin sayı və toplam sayları lazım olacağı üçün onları da əlavə etmişəm.
    - `$group` *stage*-dən aldığım field-lərin dəyərlərini istifadə etmişəm.
    - `score` fieldinin hesablamaq almaq üçün də düsturu tətbiq etmişəm. 
    - 0-a bölünmə xətasının qarşısını almaq üçün `if else` istifadə etmişəm:

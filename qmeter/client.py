@@ -45,7 +45,13 @@ class MongoDBClient:
                     "fives": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 5] }, 1, 0] } },
                     
                 }
-            },    
+            }, 
+             
+            {
+                "$addFields":{
+                    "total_count": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                }
+            },
 
             {
                 "$project": {
@@ -57,7 +63,7 @@ class MongoDBClient:
                     "threes": "$threes", 
                     "fours": "$fours", 
                     "fives": "$fives",
-                    "total": { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
+                    "total": "$total_count",
                     "score": { 
                         "$cond": { 
                             "if": { "$gt": [ { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] }, 0] },
@@ -77,10 +83,7 @@ class MongoDBClient:
                                         ]
                                     },
                                     {
-                                        "$multiply": [
-                                            { "$add": ["$ones", "$twos", "$threes", "$fours", "$fives"] },
-                                            10
-                                        ]
+                                        "$multiply": [ "$total_count", 10]
                                     }
                                 ]
                             },

@@ -22,7 +22,9 @@ class ScoreTable1View(TemplateView):
         branch_data: Dict[str, List]= defaultdict(list) # provides data structure like { any_key: [], any_key: [], ... }
         
         for document in result:
+
             branch_name = document.get("branch_name")
+        
             service_data = {
                 "service_name": document.get("service_name"),
                 "score": document.get("score"),
@@ -32,6 +34,7 @@ class ScoreTable1View(TemplateView):
                 "fours": document.get("fours"),
                 "fives": document.get("fives"),
                 "total": document.get("total"),
+
             }
             branch_data[branch_name].append(service_data)
         
