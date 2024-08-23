@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Scores</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Service Scores by Branch</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Branch</th>
+                <th>Service</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for score in scores %}
+            <tr>
+                <td>{{ score.branch }}</td>
+                <td>{{ score.service }}</td>
+                <td>{{ score.score }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+
+
+from django.shortcuts import render
+from pymongo import MongoClient
+
+def scores_view(request):
+    # Connect to MongoDB
+    client = MongoClient('mongodb://db:27017/')
+    db = client.your_database_name
+    collection = db.your_collection_name
+
+    # MongoDB aggregation pipeline
+    pipeline = [
+        { "$unwind": "$feedback_rate" },
+        {
+            "$group": {
+                "_id": {
+                    "branch": "$branch.name",
+                    "service": "$feedback_rate.service.name"
+                },
+                "count1": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 1] }, 1, 0] } },
+                "count2": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 2] }, 1, 0] } },
+                "count3": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 3] }, 1, 0] } },
+                "count4": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 4] }, 1, 0] } },
+                "count5": { "$sum": { "$cond": [{ "$eq": ["$feedback_rate.rate_option", 5] }, 1, 0] } }
+            }
+        },
+        {
+            "$project": {
+                "branch": "$_id.branch",
+                "service": "$_id.service",
+                "score": {
+                    "$multiply": [
+                        100,
+                        {
+                            "$divide": [
+                                {
+                                    "$sum": [
+                                        { "$multiply": ["$count1", 10] },
+                                        { "$multiply": ["$count2", 5] },
+                                        { "$multiply": ["$count3", 0] },
+                                        { "$multiply": ["$count4", -5] },
+                                        { "$multiply": ["$count5", -10] }
+                                    ]
+                                },
+                                {
+                                    "$multiply": [
+                                        {
+                                            "$sum": [
+                                                "$count1",
+                                                "$count2",
+                                                "$count3",
+                                                "$count4",
+                                                "$count5"
+                                            ]
+                                        },
+                                        10
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+
+    results = list(collection.aggregate(pipeline))
+    
+    # Pass the results to the template
+    context = {
+        'scores': results
+    }
+    return render(request, 'scores.html', context)
